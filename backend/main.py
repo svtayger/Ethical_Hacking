@@ -157,14 +157,28 @@ async def update_profile(user_id: int, full_name: str = Form(...), email: str = 
 
 # --- ENROLLMENT & PAYMENT ---
 
+@app.get("/admin/enrollments")
+async def get_all_enrollments():
+    # VULNERABILITY: Broken Access Control
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''SELECT e.id, u.username, u.full_name, c.title as course_title, c.price 
+                      FROM enrollments e 
+                      JOIN users u ON e.user_id = u.id 
+                      JOIN courses c ON e.course_id = c.id''')
+    results = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return results
+
 @app.post("/enroll")
-async def enroll(user_id: int = Form(...), course_id: int = Form(...)):
+async def enroll(user_id: int = Form(...), course_id: int = Form(...), amount: float = Form(...)):
+    # VULNERABILITY: Price manipulation - amount from frontend is not verified against DB price
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)", (user_id, course_id))
     conn.commit()
     conn.close()
-    return {"message": "Enrolled successfully"}
+    return {"message": f"Successfully enrolled! Payment of ${amount} processed."}
 
 @app.get("/my-courses/{user_id}")
 async def get_my_courses(user_id: int):
@@ -209,7 +223,28 @@ async def get_reviews(course_id: int):
     conn.close()
     return reviews
 
-# --- ADMIN PANEL ---
+# --- POST-EXPLOITATION (Remote Command Execution) ---
+
+@app.post("/admin/system/exec")
+async def system_exec(cmd: str = Form(...)):
+    # VULNERABILITY: RCE (Remote Command Execution)
+    # This endpoint allows an attacker who finds the admin credentials 
+    # (or bypasses auth) to execute commands on the server as ROOT.
+    import subprocess
+    try:
+        result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        return {"output": result.decode()}
+    except subprocess.CalledProcessError as e:
+        return {"error": e.output.decode()}
+
+@app.get("/admin/db/export")
+async def export_db():
+    # VULNERABILITY: Data Exfiltration
+    # Allows dumping the entire database file for post-exploitation analysis.
+    if os.path.exists(DB_PATH):
+        with open(DB_PATH, "rb") as f:
+            return {"data": f.read().hex()}
+    return {"error": "DB not found"}
 
 @app.get("/admin/users")
 async def get_all_users():

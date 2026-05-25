@@ -17,4 +17,5 @@ COPY . .
 EXPOSE 8000
 
 # Run the application
+# VULNERABILITY: Debug mode will be active via app settings in main.py
 CMD ["python", "main.py"]
