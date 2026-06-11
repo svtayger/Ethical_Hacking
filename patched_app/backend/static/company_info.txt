@@ -1,0 +1,22 @@
+# MyEduConnect Corporate Metadata (OSINT Simulation)
+
+## Employees
+- CEO: Arthur Morgan (amorgan@myeduconnect.local)
+- CTO: Linus Torvalds (ltorvalds@myeduconnect.local)
+- Lead Developer: Sarah Connor (sconnor@myeduconnect.local)
+- HR Manager: Michael Scott (mscott@myeduconnect.local)
+
+## Infrastructure
+- Domain Registrar: Namecheap (Fake)
+- IP Range: 192.168.1.0/24 (Simulation)
+- Subdomains:
+    - portal.myeduconnect.local
+    - dev-internal.myeduconnect.local (PRIVATE)
+    - mail.myeduconnect.local
+    - vpn.myeduconnect.local
+
+## Tech Stack
+- Frontend: React 18
+- Backend: FastAPI (Python)
+- Database: MySQL (Legacy), migrating to SQLite
+- Containerization: Docker (Running as root)
