@@ -1,9 +1,19 @@
 services:
+  nginx:
+    build: ./nginx
+    restart: always
+    ports:
+      - "8443:443"
+    depends_on:
+      - backend
+      - frontend
   backend:
     build: ./backend
     restart: always
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
+    env_file:
+      - .env
     environment:
       - DEBUG=False
       - SECRET_KEY=replace_this_with_a_secure_random_string_in_production
@@ -11,9 +21,10 @@ services:
   frontend:
     build: ./frontend
     restart: always
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     depends_on:
       - backend
     environment:
       - WDS_SOCKET_PORT=0
+      - HOST=0.0.0.0

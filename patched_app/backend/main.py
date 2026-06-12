@@ -9,15 +9,20 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 from jose import JWTError, jwt
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Security Configurations
-SECRET_KEY = "SUPER_SECRET_KEY_REPLACE_IN_PRODUCTION" # Use environment variables!
+SECRET_KEY = os.getenv("SECRET_KEY", "SUPER_SECRET_KEY_REPLACE_IN_PRODUCTION")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
+BACKEND_PORT = int(os.getenv("BACKEND_PORT", "8000"))
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-app = FastAPI(debug=False) # FIX: Debug mode disabled
+app = FastAPI(debug=False)
 
 # --- PASSWORD UTILITIES ---
 
@@ -35,10 +40,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     except Exception:
         return False
 
-# CORS configuration - restrict to known frontend origins in production
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, replace with specific origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -347,4 +351,4 @@ async def get_stats(admin: dict = Depends(get_admin_user)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=BACKEND_PORT)
